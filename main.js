@@ -3,7 +3,7 @@ import GUI from "lil-gui";
 
 // --- CONFIGURATION & GUI PARAMS ---
 const params = {
-  imageUrl1: "https://picsum.photos/id/1025/1024/768",
+  imageUrl1: "https://picsum.photos/id/1026/1024/768",
   imageUrl2: "https://picsum.photos/id/1015/1024/768",
   stripeCount: 400,
   ghosting: 0.1,
