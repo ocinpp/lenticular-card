@@ -233,6 +233,64 @@ function init() {
   window.addEventListener("mousemove", onMouseMove);
   window.addEventListener("touchmove", onTouchMove, { passive: false });
   window.addEventListener("resize", onWindowResize);
+
+  setupGyroscope();
+}
+
+let useGyro = false;
+
+function setupGyroscope() {
+  const gyroBtn = document.getElementById("gyro-btn");
+  if (!gyroBtn) return;
+
+  // Show button on mobile/touch devices
+  if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
+    gyroBtn.style.display = "block";
+  }
+
+  gyroBtn.addEventListener("click", () => {
+    if (
+      typeof DeviceOrientationEvent !== "undefined" &&
+      typeof DeviceOrientationEvent.requestPermission === "function"
+    ) {
+      DeviceOrientationEvent.requestPermission()
+        .then((permissionState) => {
+          if (permissionState === "granted") {
+            enableGyro(gyroBtn);
+          } else {
+            alert("Gyroscope permission denied.");
+          }
+        })
+        .catch(console.error);
+    } else {
+      // Non-iOS 13+ devices
+      enableGyro(gyroBtn);
+    }
+  });
+}
+
+function enableGyro(btn) {
+  useGyro = true;
+  btn.style.display = "none";
+  window.addEventListener("deviceorientation", onDeviceOrientation, true);
+}
+
+function onDeviceOrientation(event) {
+  if (!useGyro) return;
+
+  const gamma = event.gamma || 0; // -90 to 90
+  const beta = event.beta || 0; // -180 to 180
+
+  const maxGamma = 30;
+  const mappedX = Math.max(-1, Math.min(1, gamma / maxGamma));
+
+  // Assuming 45 degrees is neutral holding position
+  const centeredBeta = beta - 45;
+  const maxBeta = 30;
+  const mappedY = -Math.max(-1, Math.min(1, centeredBeta / maxBeta));
+
+  mouseX = mappedX;
+  mouseY = mappedY;
 }
 
 function onMouseMove(event) {
@@ -241,6 +299,7 @@ function onMouseMove(event) {
 }
 
 function onTouchMove(event) {
+  if (useGyro) return;
   if (event.touches.length > 0) {
     mouseX = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
     mouseY = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
